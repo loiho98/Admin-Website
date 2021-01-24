@@ -1,0 +1,38 @@
+meta(charset='utf-8')
+meta(http-equiv='X-UA-Compatible' content='IE=edge')
+meta(name='viewport',content='width=device-width,initial-scale=1')
+title
+//  GOOGLE FONTS 
+link(href='https://fonts.googleapis.com/css?family=Montserrat:400,500|Poppins:400,500,600,700|Roboto:400,500' rel='stylesheet')
+link(href='https://cdn.materialdesignicons.com/3.0.39/css/materialdesignicons.min.css' rel='stylesheet')
+//  PLUGINS CSS STYLE 
+link(href='assets/plugins/toaster/toastr.min.css' rel='stylesheet')
+link(href='assets/plugins/nprogress/nprogress.css' rel='stylesheet')
+link(href='assets/plugins/flag-icons/css/flag-icon.min.css' rel='stylesheet')
+link(href='assets/plugins/jvectormap/jquery-jvectormap-2.0.3.css' rel='stylesheet')
+link(href='assets/plugins/ladda/ladda.min.css' rel='stylesheet')
+link(href='assets/plugins/select2/css/select2.min.css' rel='stylesheet')
+link(href='assets/plugins/daterangepicker/daterangepicker.css' rel='stylesheet')
+link#sleek-css(href='assets/css/sleek.css' rel='stylesheet')
+link(href='assets/img/favicon.png' rel='shortcut icon')
+<![endif]
+script(src='assets/plugins/nprogress/nprogress.js')
+script(src='https://npmcdn.com/js-alert/dist/jsalert.min.js')
+script.
+  console.log(!{JSON.stringify(error)})
+.container.d-flex.flex-column.justify-content-between.vh-100
+  .row.justify-content-center.mt-5
+    .col-xl-5.col-lg-6.col-md-10
+      .card
+        .card-header.bg-primary
+          .app-brand
+            a(href='/index.html')
+              svg.brand-icon(xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='xMidYMid' width='30' height='33' viewBox='0 0 30 33')
+                g(fill='none' fill-rule='evenodd')
+                  path.logo-fill-blue(fill='#7DBCFF' d='M0 4v25l8 4V0zM22 4v25l8 4V0z')
+                  path.logo-fill-white(fill='#FFF' d='M11 4v25l8 4V0z')
+              span.brand-name Victoria Store
+        .card-body.p-5
+          h4(style='color:red') Error.
+          p(style='color:orange') #{error}
+          p(style='color:green') Please go back and try aggain.

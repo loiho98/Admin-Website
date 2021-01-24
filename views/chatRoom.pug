@@ -1,0 +1,94 @@
+extends layout
+block title
+  .btn-group.btn-breadcrumb
+    a.btn.btn-default(href='/preview')
+      i.mdi.mdi-home
+    a.btn.btn-default(href='/message') Message
+    a.btn.btn-default(href='#') Victoria Chat
+block append head
+   style(type="text/css")
+           include chat.css
+block content
+ 
+  .chat-container(style="margin-bottom:10px")
+    ul.chat-box.chatContainerScroll#messageDiv
+    .type_msg
+      .input_msg_write#inputMessageDiv
+        input#messageInput.write_msg(type='text' placeholder="Enter your message...")
+        button.msg_send_btn#sendImage(onclick="chooseFile()")
+          i.mdi.mdi-camera-image(aria-hidden='true')
+    div(style='height:0px;width:0px;overflow:hidden')
+      input#imageInput(name='fileInput' type='file')
+  script(type='text/javascript').
+    var key = !{JSON.stringify(key)}
+    var chat=[]
+        function chooseFile() {
+            $("#imageInput").click();
+        }
+       var firstFile=null
+      $("#imageInput").on('change', function(evt) {
+        $("#messageInput").val(evt.target.files[0].name)
+        firstFile = evt.target.files[0]
+       })
+    var messageRef = firebase.database().ref('/chat/'+key)
+    $('#messageInput').keypress(function(e){
+    if(e.keyCode == 13) {
+        var name = "Victoria Store"
+        var text = $('#messageInput').val();
+        var time = moment().format('llll').toString()
+         if (firstFile!=null){
+          var imageName=moment()+firebase.database().ref('/').push().key
+          console.log(firstFile)
+          firebase.storage().ref("/chat/"+imageName).put(firstFile).then(()=>{
+             firebase.storage().ref("/chat/"+imageName).getDownloadURL().then(url=>{
+            messageRef.push({name:name, image:url, time:time})
+          })
+          }).then(()=>{
+              firstFile=null
+              imageName=""
+          })
+         }else{
+            messageRef.push({name:name, content:text, time:time});
+         }
+        $('#messageInput').val("")
+        }
+     });
+     async function display(array){
+        $('#messageDiv').html("")
+         array.forEach(message=>{
+            if(message.name=="Victoria Store"){
+            $('#messageDiv').append('<li class="chat-left"> <div class="chat-avatar"> <img class="avartar" src="https://www.bootdey.com/img/Content/avatar/avatar5.png" alt="Retail Admin" /> <div class="chat-name">'+message.name+'</div> </div> <div class="chat-text">'+(message.content?message.content:"")+'<div  style="display:'+(message.image?"block":"none")+'"><a href="'+message.image+'" id="'+message.image+'"> <img class="sendImage" src="'+message.image+'" alt="Not available!" ></a></div> </div> <div class="chat-hour"> '+message.time+' <span  id="seen'+ message.key+'" ></span> </div> </li>');
+          
+        }
+         else{
+            $('#messageDiv').append('<li class="chat-right"> <div class="chat-hour"> '+message.time+' <span   id="seen'+ message.key+'" ></span> </div> <div class="chat-text"> '+(message.content?message.content:"")+' <div  style="display:'+(message.image?"block":"none")+'"><a href="'+message.image+'" id="link'+message.image+'"> <img class="sendImage" alt="Not available!" src="'+message.image+'" ></a></div></div><div class="chat-avatar"> <img src="https://www.bootdey.com/img/Content/avatar/avatar3.png" class="avartar"  alt="Retail Admin" /> <div class="chat-name">'+message.name+'</div> </div> </li>');
+        }
+         
+         })
+        }
+        function updateSeen(message_key){
+           $("#seen"+message_key).addClass("fa fa-check-circle")
+        }
+      firebase.database().ref('/chat/'+key).on("value", (snap)=>{
+        var message=[]
+          if (snap.exists()){ 
+            snap.forEach(item=>{
+              var i=item.val()
+              i.key=item.key
+              message.push(i)
+            })
+          }
+         display(message).then(()=>{
+          $('html, body').animate({scrollTop:$(document).height()}, 'slow');
+         })
+         snap.forEach(item=>{
+          if (item.val().name!="Victoria Store"){
+            messageRef.child(item.key).update({seen:"true"}).then(()=>{updateSeen(item.key)})
+          }
+         })
+         snap.forEach(item=>{
+            if (item.val().name=="Victoria Store" && item.val().seen==="true"){
+             updateSeen(item.key)
+          }
+         })
+      });

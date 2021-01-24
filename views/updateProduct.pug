@@ -1,0 +1,252 @@
+extends layout
+block title
+  .btn-group.btn-breadcrumb
+    a.btn.btn-default(href='/preview')
+      i.mdi.mdi-home
+    a.btn.btn-default(href='/product') Product
+    a.btn.btn-default(href='#') Update Product #{product.key}
+block content
+  .content
+    .card.border-primary
+      .card-header.card-header-border-bottom.text-light.bg-primary
+        h5.center Update Product
+      .card-body
+        form#add_form(action='/updateproduct' method="POST")
+          input(name="key" type="hidden" value=product.key)
+          .form-group
+              label Name
+              input.form-control#name(name='name' type='text' value=product.name required)  
+          .form-group.row
+            .col
+              label(for="") Supplier
+              select(name="supplier" value=product.supplier).form-control
+                each item in supplier
+                  option(value=item) #{item}
+            .col
+              label(for="") Category
+              select(name="category" value=product.supplier).form-control
+                each item in category
+                  option(value=item) #{item}
+            .col
+              label Material
+              input.form-control(name="material" type='text' value=product.material required) 
+              
+          .form-group
+            label(for="") Description
+            textarea.form-control#description_textarea(name='description' rows="5") #{product.description}
+          .form-group.row
+            .col  
+              label Price
+              input.form-control(name="price" value=product.original_price required pattern="[0-9]+(\.[0-9][0-9]?)?")  
+            .col
+              label Discount(%)
+              input.form-control(name="discount" type='number' value=product.discount pattern="[0-9]+(\.[0-9][0-9]?)?" required)
+          .form-group.col
+            label.row Image
+            button#add_img_button.row.btn.btn-outline-dark(type="button")
+              i.mdi.mdi-image-plus
+          #img
+          .form-group.row
+            .col
+              label Color
+              input#add_color.form-control( required)
+            .col
+              label Size:    
+              input#add_size.form-control( required)
+          input#color(name="color" type="hidden")
+          input#variant(name="variant" type="hidden")
+          input#size(name="size" type="hidden")
+          input#image(name="image" type="hidden")
+          #color_review_div(style="display: flex;flex-direction:row")
+          #variant_review_div
+          button.right.btn.btn-primary(type='submit') Submit
+  .modal.fade#Update_Modal(role="dialog")
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h5.modal-title#modal_name
+          button.close(data-dismiss='modal' type='button' aria-span='Close')
+            span(aria-hidden='true') ×
+        .modal-body
+            .form-group
+              label(for="") SKU
+              input#sku.form-control(name='variant_sku' type='text' required)
+            .form-group
+              label Quantity
+              input#quantity.form-control(name='variant_quantity' type='number' required)
+            button#accept.btn.btn-primary(type='submit') Accept
+        .modal-footer
+          button.btn.btn-secondary(data-dismiss='modal' type='button') Close
+  .modal.fade#Image_Modal(role="dialog")
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h5.modal-title Image
+          button.close(data-dismiss='modal' type='button' aria-span='Close')
+            span(aria-hidden='true') ×
+        .modal-body
+            .form-group
+              label(for="") Url
+              input#add_img.form-control(name='' type='text' required)
+            .form-group
+                label Or
+                button.form-control.btn.btn-success(onclick="chooseFile()") Upload
+            div(style='height:0px;width:0px;overflow:hidden')
+              input#upload(name='fileInput' type='file')
+        .modal-footer
+          button.btn.btn-secondary(data-dismiss='modal' type='button') Close
+  .modal.fade#Select_Image(role="dialog")
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h5.modal-title Select Image For 
+            span.capital#choose
+          button.close(data-dismiss='modal' type='button' aria-span='Close')
+            span(aria-hidden='true') ×
+        .modal-body
+            #img_gallery
+        .modal-footer
+          button.btn.btn-secondary(data-dismiss='modal' type='button') Close
+  script.
+    var product=!{JSON.stringify(product)}
+    var color=Object.values(product.color),size=Object.values(product.size),variant=Object.values(product.variant),image=Object.values(product.image),selectImage=""
+    var initColor="",initSize=""
+    function chooseFile() {
+            $("#upload").click();
+    }
+       var firstFile=null
+      $("#upload").on('change', function(evt) {
+        var imageName=moment()+firebase.database().ref('/').push().key
+        firstFile = evt.target.files[0]
+        firebase.storage().ref("/product/"+imageName).put(firstFile).then(()=>{
+            firebase.storage().ref("/product/"+imageName).getDownloadURL().then(url=>{
+            image.push(url)
+            jQuery.noConflict();
+             $("#Image_Modal").modal("hide");
+            updateImage()
+       })
+        })
+      })
+    color.forEach(item=>{
+             {
+              initColor+=item.name+","
+            }
+           })
+            size.forEach(item=>
+            {
+              initSize+=item.name+","
+            }
+            )
+    $("#add_color").val(initColor)
+    $("#add_size").val(initSize)
+    updateImage()
+    updateColorImage()
+    function updateImage(){
+            $("#img").html("")
+             image.forEach(item=>{
+              $("#img").append('<img src="'+item+'" alt="" style="height:100px"/>')
+             })
+          }
+    function updateVariant(){
+          $("#variant_review_div").html("")
+           if (color.length>0 && size.length>0){
+              $("#variant_review_div").append("<p class='text-success' style='font-weight:bold;font-size:16px;margin-bottom:20px;margin-top:20px'>Variants: </p>")
+             }
+            variant.forEach(item=>{
+               $("#variant_review_div").append('<div class="row"> <div class="col"> <div class="form-group"> <input type="checkbox" value="'+item.name+'" id="variant_'+item.name+'" checked /> <label>'+item.name+'</label> </div> </div> <div class="col"><p>SKU: '+(item.sku?item.sku:"_")+'</p></div> <div class="col"><p>Quantity: '+(item.quantity?item.quantity:"_")+'</p></div> </div>')
+            })
+           }
+    function updateColorImage(){
+      $("#color_review_div").html("")
+      color.forEach(item=>{
+        $("#color_review_div").append('<div  style="display: flex;flex-direction: column;"> <img src="'+item.image+'" alt="" style="height: 100px" /> <button type="button" class="btn btn-light ttr btn-sm">'+item.name+'</button> </div>')
+      })
+    }
+    $('#add_img').keypress(function(e){
+    if(e.keyCode == 13) {
+       if (!image.find(e=>e==$(this).val())){image.push($(this).val())}
+       jQuery.noConflict();
+        $("#Image_Modal").modal("hide");
+        updateImage()
+        }
+     });
+    $(document).on("click", "#add_img_button", function() {
+      $('#add_img').val("")
+      jQuery.noConflict();
+      $("#Image_Modal").modal();
+    }) ;
+    $(document).on("click","img[id*='image_']",function() {
+      jQuery.noConflict();
+      $("#Select_Image").modal("hide");
+      selectImage=$(this).attr('src')
+      color.push({name:$("#choose").html(),image:selectImage})
+      updateColorImage()
+    }) ;
+    $(document).ready(function() {
+          updateVariant()
+           $('#add_color').tagsInput({'onAddTag':(e)=>{
+             jQuery.noConflict();
+              $("#Select_Image").modal();
+              $("#choose").html(e)
+              $("#img_gallery").html("")
+              image.forEach(item=>{
+                 $("#img_gallery").append('<img src="'+item+'" alt="" style="margin-right:4px;height:100px;float:left" id="image_+'+item+'"/>')
+              })
+              for (i in size){
+                variant.push({name:e+"/"+size[i].name})
+              }
+              updateVariant()
+           },
+           'onRemoveTag':(x)=>{
+              color=color.filter(c=>c.name!=x)
+              variant=variant.filter(v=>v.name.split("/")[0]!=x)
+              updateColorImage()
+              updateVariant()
+           }
+           });
+           $('#add_size').tagsInput({'onAddTag':(e)=>{
+              size.push({name:e})
+              for (i in color){
+                variant.push({name:color[i].name+"/"+e})
+              }
+               updateVariant()
+           },
+           'onRemoveTag':(x)=>{
+             size=size.filter(s=>s.name!=x.name)
+             variant=variant.filter(v=>v.name.split("/")[1]!=x)
+             updateVariant()
+           }
+           });
+           
+    })
+    $(document).on("click", "#accept", function() {
+      var name=$("#modal_name").html(),sku=$("#sku").val(),quantity=Number($("#quantity").val())
+      jQuery.noConflict();
+      $("#Update_Modal").modal("hide");
+      variant=variant.filter(v=>v.name!=name)
+      variant.push({name,sku,quantity})
+      updateVariant()
+    }) ;
+    $(document).on("change", "input[id*='variant_']", function() {
+      if ($(this).is(":checked")){
+      jQuery.noConflict();
+      $("#Update_Modal").modal();
+      $("#modal_name").html($(this).val())
+      var item=variant.find(e=>e.name==$(this).val())
+      if(item.sku && item.quantity){
+        $("#sku").val(item.sku)
+        $("#quantity").val(item.quantity)
+      }
+      else{
+        $("#sku").val("")
+        $("#quantity").val("")
+      }
+      }
+    }) ;
+   
+    $( "#add_form" ).submit(function( event ) {
+      $("#color").val(JSON.stringify(color))
+      $("#variant").val(JSON.stringify(variant))
+      $("#size").val(JSON.stringify(size))
+       $("#image").val(JSON.stringify(image))
+      });

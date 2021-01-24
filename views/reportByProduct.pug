@@ -1,0 +1,111 @@
+extends layout 
+block title
+  .btn-group.btn-breadcrumb
+    a.btn.btn-default(href='/preview')
+      i.mdi.mdi-home
+    a.btn.btn-default(href='/report') Report
+    a.btn.btn-default(href='#') By Product
+block rightbutton
+  .row
+    form(action="/reportbyproduct" method="POST")
+      .row
+        .btn.btn-light.ftr Select range
+        input#date.form-control.col.ftr(type='text' value="")
+        input#start(type="hidden" name="start")
+        input#end(type="hidden" name="end")
+        button.btn.btn-primary.twtr(type="submit") Apply
+    form(action="/reportbyproduct" method="POST")
+      input#export_start(type="hidden" name="start" value=start)
+      input#export_end(type="hidden" name="end" value=end)
+      input(type="hidden" name="action" value="export")
+      button.btn.btn-dark(type="submit") Export
+block content 
+  table#myUL.table.table-striped
+    thead.thead-dark
+      tr
+          th Product
+          th Number of product
+          th Sales
+          th Discount
+          th Net Sales
+          th Total
+          th Recieved
+      tbody
+        each item in report
+          tr
+            td.capital #{item.name} 
+            td #{item.buy_quantity}
+            td #{item.buy_quantity*item.original_price}
+            td #{item.buy_quantity*(item.original_price-item.price)}
+            td #{item.buy_quantity*item.price}
+            td #{item.buy_quantity*item.original_price+10}
+            td #{item.buy_quantity*item.original_price+10}
+  canvas#myChart(width='400' height='90')
+
+  script.
+    $(document).ready(function(){
+      $("#myUL").DataTable()
+      var start=!{JSON.stringify(start)}, end= !{JSON.stringify(end)}
+      $('#date').daterangepicker({
+        opens:'left',
+        startDate: moment(start).format("MM/DD/YYYY"),
+        endDate:moment(end).format("MM/DD/YYYY"),
+        ranges: {
+           'Today': [moment(), moment()],
+           'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+           'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+           'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+           'This Month': [moment().startOf('month'), moment().endOf('month')],
+           'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+        }
+      }, function(start, end, label) {
+        $("#start").val(start)
+        $("#end").val(end)
+        $("#export_start").val(start)
+        $("#export_end").val(end)
+     })
+    })
+    var ctx = document.getElementById('myChart').getContext('2d');
+    var order=!{JSON.stringify(report)}
+    var labels=[],data=[]
+    order.forEach(item=>{
+      labels.push(item.name.toUpperCase())
+      data.push(item.buy_quantity*item.price)
+    })
+    var myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Net Sales',
+                data: data,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(255, 159, 64, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+         options: {
+        layout: {
+            padding: {
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 0
+            }
+        }
+    }
+    });

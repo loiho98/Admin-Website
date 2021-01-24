@@ -1,0 +1,64 @@
+extends layout
+block title
+  .btn-group.btn-breadcrumb
+    a.btn.btn-default(href='/preview')
+      i.mdi.mdi-home
+block rightbutton
+  input.form-control#search(type='text' placeholder='Type any to search...')
+block content
+  ul(style="font-size:13px")#product
+    each i in product
+      if i
+        li
+          .card(style='width:16rem;float:left;margin:1.5rem')
+            img.card-img-top(src=i.image[0] alt=i.link1 style='height:20rem;width:16rem')
+            .card-body
+              p.card-title(style='color:purple') #{i.name.toUpperCase()}
+              table#Pdiv
+                tbody
+                  tr
+                    td Type:
+                    td(style='text-transform:capitalize') #{i.category}
+                  tr
+                    td Color:
+                    td(style='text-transform:capitalize;')
+                      each c in i.color
+                        |#{c.name+" | "}
+                  tr
+                    td Material:
+                    td(style='text-transform:capitalize;')  #{i.material}
+                  tr
+                    td #{i.rating.count} ratings
+                    td #{i.rating.value}
+                  tr
+                    td Cmts:                    
+                    td
+                      a(href="/comments?key="+i.key)  #{i.comment}
+                  tr
+                    td New Cmts:                    
+                    td
+                      a(id="cmt"+i.key href="/comments?key="+i.key) 0
+              .collapse(id=i.key)
+                p #{i.description}
+              .row
+                button.btn.btn-light.btn-sm.col Price: $#{i.price}
+                a.btn.btn-dark.btn-sm(data-toggle='collapse' href='#'+i.key role='button' aria-controls='collapseExample' aria-expanded='false').
+                  Detail
+  script.
+    function updateNewCmt(key,value){
+           $("#cmt"+key).html(value)
+        }
+    firebase.database().ref('/review/').once("value", (snap)=>{
+          snap.forEach(item=>{
+            updateNewCmt(item.key,Object.values(item.val()).filter(e=>e.comment.show=="0").length)
+          })
+       })
+    $(document).ready(function(){
+    $("#search").on("keyup", function() {
+      var value = $(this).val().toLowerCase();
+        $("#product li").filter(function() {
+          $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+        });
+      });
+    });
+

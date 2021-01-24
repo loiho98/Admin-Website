@@ -1,0 +1,327 @@
+extends layout
+block title
+  .btn-group.btn-breadcrumb
+    a.btn.btn-default(href='/preview')
+      i.mdi.mdi-home
+    a.btn.btn-default(href='/order') Order
+    a.btn.btn-default(href='#') Order #{key}
+block content
+  .content
+    .invoice-wrapper.rounded.border.bg-white.py-5.px-3.px-md-4.px-lg-5
+      .d-flex.justify-content-between
+        h3.text-success.font-weight-medium Tracking:
+          p.text-warning.bold #{key}
+        .btn-group
+          if order.status==0
+            button(data-target='#Accept_Modal' data-toggle='modal' type='button' ).btn.btn-sm.btn-warning
+              i.mdi.mdi-check-outline
+              |  Accept
+          if order.status==1
+            button(data-target='#Ship_Modal' data-toggle='modal' type='button' ).btn.btn-sm.btn-warning
+              i.mdi.mdi-car-connected
+              |  Delivery
+          if order.status==2
+            button(data-target='#Complete_Modal' data-toggle='modal' type='button').btn.btn-sm.btn-warning
+              i.mdi.mdi-checkbox-multiple-marked-circle-outline
+              |  Mark as completed
+          button.btn.btn-sm.btn-secondary(onclick="window.print()")
+            i.mdi.mdi-printer
+            |  Print
+      .row.pt-5
+        .col-xl-3.col-lg-4
+          b.text-dark.mb-2 From
+          address
+            | #{order.name}
+            br
+            |  Email: #{order.email}
+            br
+            |  Phone: #{order.phone}
+            br
+            p Address: #{order.address}
+        .col-xl-3.col-lg-4
+          b.text-dark.mb-2 Order time
+          address
+            | #{order.order_time}
+        .col-xl-3.col-lg-4
+          b.text-dark.mb-2 Payment
+          address
+            if  order.transaction.type=="COD"
+                i.mdi.mdi-radiobox-marked.text-warning #{order.transaction.type}
+            else 
+                i.mdi.mdi-radiobox-marked.text-info #{order.transaction.type}
+            br
+            if  order.transaction.status=="0"
+                i.mdi.mdi-radiobox-marked.text-danger Unpaid
+            else 
+                i.mdi.mdi-radiobox-marked.text-warning Unpaid
+        .col-xl-3.col-lg-4
+          button.btn.btn-danger.btn-sm(data-target='#Cancel_Modal' data-toggle='modal' type='button' )
+            i.mdi.mdi-cancel
+            | Cancel Order
+          if order.status==2
+            button(data-target='#Cancel_Delivery_Modal' data-toggle='modal' type='button'   style="margin-left:4px").btn.btn-sm.btn-danger
+                i.mdi.mdi-cancel
+                |  Cancel Delivery
+      p.text-success(style="font-size:12px") Note: Notifications will be sent to customer after you performed actions.
+      .container
+        .row
+          .col-12.col-md-10.hh-grayBox.pt45.pb20
+            .row.justify-content-between
+              if (order.status==-1)
+                .order-tracking.canceled
+                    span.is-complete
+                    p
+                      | Cancled
+              else
+                if (order.status==0)
+                  .order-tracking
+                    span.is-complete
+                    p
+                      | Waiting to accept
+                else
+                  .order-tracking.completed
+                    span.is-complete
+                    p
+                      | Accepted
+                      br
+                      span #{order.accepted_time}
+                if (order.status<2)
+                  .order-tracking
+                    span.is-complete
+                    p
+                      | Waiting to ship
+                else
+                  .order-tracking.completed
+                    span.is-complete
+                    p
+                      | Shipping
+                      br
+                      span #{order.shipping_time}
+                if (order.status<3)
+                  .order-tracking
+                    span.is-complete
+                    p
+                      | Waiting to complete
+                      br
+                else
+                  .order-tracking.completed
+                    span.is-complete
+                    p
+                      | Completed
+                      br
+                      span #{order.completed_time}
+
+      table.table.mt-3.table-striped.table-responsive.table-responsive-large(style='width:100%')
+        thead
+          tr
+            th #
+            th Item
+            th Quantity
+            th Unit Cost
+            th Total
+        tbody
+          each item in order.cart
+            tr
+              td #{item.key}
+              td.row
+                img(src=item.image[0], style="width:40px;margin:5px")
+                .col
+                  .row #{item.name.toUpperCase()}
+                  .row(style="color:grey;font-size:12px") #{item.buy_variant.name}
+                  .row(style="color:grey;font-size:12px") SKU: #{item.buy_variant.sku}
+              td #{item.buy_quantity}
+              td #{Number(item.price).toLocaleString('en-US', {style: 'currency', currency: 'USD'} )}
+              td #{Number(item.buy_quantity*item.price).toLocaleString('en-US', {style: 'currency', currency: 'USD'} )}
+      .row.justify-content-end
+        .col-lg-5.col-xl-4.col-xl-3.ml-sm-auto
+          ul.list-unstyled.mt-4
+            li.mid.pb-3.text-dark
+              | Subtotal
+              span.d-inline-block.float-right.text-default #{order.amount.toLocaleString('en-US', {style: 'currency', currency: 'USD'} )}
+            li.mid.pb-3.text-dark
+              | Shipping
+              span.d-inline-block.float-right.text-default #{(10).toLocaleString('en-US', {style: 'currency', currency: 'USD'} )}
+            li.mid.pb-3.text-dark
+              | VAT(10%)
+              span.d-inline-block.float-right.text-default Included
+            li.pb-3.text-dark.b
+              | Total
+              span.d-inline-block.float-right #{order.amount.toLocaleString('en-US', {style: 'currency', currency: 'USD'} )}
+      .modal.fade#Accept_Modal(aria-hidden='true' aria-labelledby='exampleModalLabel' tabindex='-1')
+        .modal-dialog
+          .modal-content
+            .modal-header
+              h5.modal-title#exampleModalLabel Accept order
+              button.close(data-dismiss='modal' type='button' aria-label='Close')
+                span(aria-hidden='true') ×
+            .modal-body
+              | Tracking #{key}
+            .modal-footer
+              button.btn.btn-light(data-dismiss='modal' type='button' aria-label='Close') No
+              button.btn.btn-primary.float-right#accept_button(type='button') Yes
+      .modal.fade#Ship_Modal(aria-hidden='true' aria-labelledby='exampleModalLabel' tabindex='-1')
+        .modal-dialog
+          .modal-content
+            .modal-header
+              h5.modal-title#exampleModalLabel Shipment
+              button.close(data-dismiss='modal' type='button' aria-label='Close')
+                span(aria-hidden='true') ×
+            .modal-body
+              .form-group
+                label Location
+                input#location.form-control(value="Default")
+              .row
+                .col
+                  .form-group
+                    label Total Weight (kg)
+                    input#total_weight.form-control(value="0" type="number")
+                .col
+                  .form-group
+                    label Shipping Methods
+                    select.form-control#method(name="")
+                      option(value="On Road") On Road
+                      option(value="Flight Route") Flight Route
+                .col
+                  .form-group
+                    label Value Insured
+                    input.form-control#insured(value="0" type="number")
+              .form-group
+                label Delivery By
+                input.form-control#delivery_by(value="Default")
+              .row
+                .col
+                  .form-group
+                    label Package Length
+                    input.form-control#pack_len(value="0" type="number")
+                .col
+                  .form-group
+                    label Package Width
+                    input.form-control#pack_wid(value="0"  type="number")
+                .col
+                  .form-group
+                    label Package Height
+                    input.form-control#pack_hei(value="0"  type="number")
+              .form-group
+                label Note
+                input.form-control#shipping_note(value="")
+            .modal-footer
+              button.btn.btn-light(data-dismiss='modal' type='button' aria-label='Close') No
+              button.btn.btn-primary.float-right#shipment_button(type='button') Yes
+      .modal.fade#Complete_Modal(aria-hidden='true' aria-labelledby='exampleModalLabel' tabindex='-1')
+        .modal-dialog
+          .modal-content
+            .modal-header
+              h5.modal-title#exampleModalLabel Mark as completed
+              button.close(data-dismiss='modal' type='button' aria-label='Close')
+                span(aria-hidden='true') ×
+            .modal-body
+              | Tracking #{key}
+            .modal-footer
+              button.btn.btn-light(data-dismiss='modal' type='button' aria-label='Close') No
+              button.btn.btn-primary.float-right#complete_button(type='button') Yes
+      .modal.fade#Cancel_Modal(aria-hidden='true' aria-labelledby='exampleModalLabel' tabindex='-1')
+        .modal-dialog
+          .modal-content
+            .modal-header
+              h5.modal-title#exampleModalLabel Cancel Order
+              button.close(data-dismiss='modal' type='button' aria-label='Close')
+                span(aria-hidden='true') ×
+            .modal-body
+              .form-group
+                label Reason
+                select.form-control#reason(name="")
+                      option(value="Customer changed") Customer changed
+                      option(value="Fraudulent order") Fraudulent order
+                      option(value="Out of stock") Out of stock
+                      option(value="Other") Other
+              .form-group
+                label Note
+                input.form-control#cancel_note(value="")
+              .form-group
+                label Payment Refund
+                input.form-control#payment_refund(value=order.amount)
+              p(style="font-size:12px").text-success Total available for refund: #{order.amount.toLocaleString('en-US', {style: 'currency', currency: 'USD'} )}
+            .modal-footer
+              button.btn.btn-light(data-dismiss='modal' type='button' aria-label='Close') No
+              button.btn.btn-primary.float-right#cancel_button(type='button') Yes
+      .modal.fade#Cancel_Delivery_Modal(aria-hidden='true' aria-labelledby='exampleModalLabel' tabindex='-1')
+        .modal-dialog
+          .modal-content
+            .modal-header
+              h5.modal-title#exampleModalLabel Cancel delivery
+              button.close(data-dismiss='modal' type='button' aria-label='Close')
+                span(aria-hidden='true') ×
+            .modal-body
+              | Tracking #{key}
+            .modal-footer
+              button.btn.btn-light(data-dismiss='modal' type='button' aria-label='Close') No
+              button.btn.btn-primary.float-right#cancel_delivery_button(type='button') Yes
+  script.
+    var key=!{JSON.stringify(key)}
+    var uid=!{JSON.stringify(order.uid)}
+    var time = moment().format('llll').toString()
+    $("#accept_button").on("click",()=>{
+       firebase.database().ref('/order/'+key).update({status:1,accepted_time:time}).then(()=>{
+        firebase.database().ref('/notification/'+uid).push().set({
+        time: time,
+        content: "Your order "+key+" was accepted"
+      }).then(()=>{ window.location.reload()})
+      })
+    })
+    $("#complete_button").on("click",()=>{
+      firebase.database().ref('/notification/'+uid).push().set({
+        time: time,
+        content: "Your order "+key+" was completed"
+      }).then(()=>{
+         firebase.database().ref('/order/'+key).update({status:3,completed_time:time}).then(()=>{ window.location.reload()})
+      })
+    })
+    $("#shipment_button").on("click",()=>{
+       jQuery.noConflict();
+      $("#Ship_Modal").modal("hide");
+      firebase.database().ref('/order/'+key).update({
+        status:2,
+        shipping_time:time,
+        shipment:{
+          location:$("#location").val(),
+          total_weight:$("#total_weight").val(),
+          method:$("#method").val(),
+          insured:$("#insured").val(),
+          delivery_by:$("#delivery_by").val(),
+          package_length:$("#pack_len").val(),
+          package_height:$("#pack_hei").val(),
+          package_width:$("#pack_wid").val(),
+          note:$("#shipping_note").val(),
+        }
+      }).then(()=>{
+        firebase.database().ref('/notification/'+uid).push().set({
+        time: time,
+        content: "Your order "+key+" is shipping"
+      }).then(()=>window.location.reload())
+      })
+    })
+    $("#cancel_button").click(function(){
+      jQuery.noConflict();
+      $("#Ship_Modal").modal("hide");
+      firebase.database().ref('/order/'+key+"/cancel/").update({
+        cancel_time:time,
+        reason:$("#reason").val(),
+        payment_refund:$("#payment_refund").val(),
+        note:$("#cancel_note").val()
+      }).then(()=>{
+         firebase.database().ref('/order/'+key).update({status:-1})
+      }).then(()=>{
+        firebase.database().ref('/notification/'+uid).push().set({
+        time: time,
+        content: "Your order "+key+" was canceled. Reason: "+$("#reason").val()
+      }).then(()=>window.location.reload())
+    })
+    })
+    $("#cancel_delivery_button").click(function(){
+      firebase.database().ref('/notification/'+uid).push().set({
+        time: time,
+        content: "We're so sorry, your order "+key+" shipping was canceled, we will try aggain, thank you!"}).then(()=>{
+           firebase.database().ref('/order/'+key).update({status:1, shipping_time:null,shipment:null})
+        }).then(()=>{ window.location.reload()})
+        
+    })

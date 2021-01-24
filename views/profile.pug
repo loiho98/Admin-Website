@@ -1,0 +1,16 @@
+extends layout
+block title
+  .btn-group.btn-breadcrumb
+    a.btn.btn-default(href='/preview')
+      i.mdi.mdi-home
+    a.btn.btn-default(href='#') Profile
+block content
+ .card.card-default.center
+    .card-header.card-header-border-bottom
+      h5.center My Profile
+    .card-body
+      center
+        img.user-image(src='assets/img/user/user.png'  alt='User Image')
+        h4.py-2.text-dark.center #{email}
+        p(style="text-transform:capitalize") #{role}
+        a.btn.btn-warning.btn-pill.btn-lg.my-4.btn-sm.center(href='/signin-to-another-account') Sign Out

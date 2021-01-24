@@ -1,0 +1,121 @@
+extends layout
+block title
+  .btn-group.btn-breadcrumb
+    a.btn.btn-default(href='/preview')
+      i.mdi.mdi-home
+    a.btn.btn-default(href='#') Orders
+block content
+  script(src='https://www.gstatic.com/firebasejs/8.0.1/firebase-app.js')
+  script(src='https://www.gstatic.com/firebasejs/8.0.1/firebase-database.js')
+  script. 
+    var firebaseConfig = {
+          apiKey: "AIzaSyAPwQjNHF1SKjdggxEk_vfQCXdsMxaMlF8",
+          authDomain: "shop-35888.firebaseapp.com",
+          databaseURL: "https://shop-35888.firebaseio.com",
+          projectId: "shop-35888",
+          storageBucket: "shop-35888.appspot.com",
+          messagingSenderId: "110055469672",
+          appId: "1:110055469672:web:c642030ba8c59b8b7581dd",
+          measurementId: "G-YPBD5YBMN0"
+        };
+    firebase.initializeApp(firebaseConfig);
+  table(style="paddingTop:100px").table#myUL.table-striped.table-responsive.w-100
+    thead.thead-dark
+      tr
+        th(scope='col') Tracking
+        th(scope='col') Time
+        th(scope='col') Customer
+        th(scope='col') Payment
+        th(scope='col') Status
+        th(scope='col') Payment Type
+        th(scope='col') Total
+        th Action
+    tbody
+      each item in order
+        if item
+          tr
+            td(style="white-space: nowrap;") 
+              a(href="/orderdetail?key="+item.key) #{item.key}
+            td(style="white-space: nowrap;")  #{item.order_time}
+            td #{item.email}
+            td
+              case item.transaction.status
+                when 0 
+                  i.mdi.mdi-radiobox-marked.text-warning.b Unpaid
+                when 1  
+                  i.mdi.mdi-radiobox-marked.text-success.b Paid
+            td
+              case item.status
+                when 0
+                  i.mdi.mdi-radiobox-marked.text-warning.b Pending
+                when 1 
+                  i.mdi.mdi-radiobox-marked.text-info.b Accepted
+                when 2 
+                  i.mdi.mdi-radiobox-marked.text-primary.b Shipping 
+                when 3 
+                  i.mdi.mdi-radiobox-marked.text-success.b Completed
+                when -1 
+                  i.mdi.mdi-radiobox-marked.text-danger.b Canceled
+            td 
+              if  item.transaction.type=="COD"
+                i.mdi.mdi-radiobox-marked.text-warning.b #{item.transaction.type}
+              else 
+                i.mdi.mdi-radiobox-marked.text-info.b #{item.transaction.type}
+            td #{Number(item.amount).toLocaleString('en-US', {style: 'currency', currency: 'USD'} )}
+            td  
+              a.btn.btn-success.btn-sm(href="/orderdetail?key="+item.key) 
+                i.mdi.mdi-square-edit-outline
+    tfoot
+      tr
+        th(scope='col') Tracking
+        th(scope='col') Time
+        th(scope='col') Customer
+        th(scope='col') Payment
+        th(scope='col') Status
+        th(scope='col') Payment Type
+        th(scope='col') Total
+        th Action
+  script. 
+    var ref=firebase.database().ref('/order/')
+    ref.startAt(null,ref.push().key).on("child_added",snap=>{
+      if (snap.val()){
+      console.log(snap.val())
+      window.location.reload();
+      }
+    })
+  script.
+    function update(item){
+      document.getElementById("update_key").value=item.key
+      document.getElementById("update_status").value=item.status
+      document.getElementById("update_paid").value=item.transaction.status
+      };
+  script.
+          $(document).ready(function() {
+             $('#myUL tfoot th').each( function () {
+                  var title = $(this).text();
+                  $(this).html( '<input type="text" class="form-control footer" placeholder="Search '+title+'" />' );
+              } );
+          var table = $('#myUL').DataTable( {
+            "order": [[ 0, "desc" ]],
+         initComplete: function () {
+            this.api().columns().every( function () {
+                var that = this;
+ 
+                $( 'input.footer', this.footer() ).on( 'keyup change clear', function () {
+                    if ( that.search() !== this.value ) {
+                        that
+                            .search( this.value )
+                            .draw();
+                    }
+                } );
+            } );
+        }
+          } );
+      } );
+    firebase.database().ref("/reload/order").once("value",(snap)=>{
+      if (snap.val()=="true"){
+        firebase.database().ref("/reload/").update({order:"false"}).then(()=>{
+           window.location.reload()
+        })
+      }
+    })

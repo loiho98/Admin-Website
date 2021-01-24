@@ -1,0 +1,130 @@
+extends layout
+block title
+  .btn-group.btn-breadcrumb
+    a.btn.btn-default(href='/preview')
+      i.mdi.mdi-home
+    a.btn.btn-default(href='#') Suppliers
+block rightbutton
+    button.btn.btn-outline-success.my-2.my-sm-0(data-target='#Add_Modal' data-toggle='modal' type='button') Add Supplier
+block content
+    table(style="paddingTop:100px").table#myUL.table-striped.table-responsive.display
+      thead.thead-dark
+          tr  
+            th(scope='col') #
+            th(scope='col') Name
+            th(scope='col') Address
+            th(scope='col') Email
+            th(scope='col') Phone
+            th(scope='col') Action
+      tbody
+        each item in supplier
+          if(item)
+            tr
+              td(style="white-space: nowrap;") #{item.key}
+              td #{item.name}
+              td #{item.address}
+              td #{item.email}
+              td #{item.phone}
+              td
+                button.btn.btn-warning.btn-sm(data-target='#Remove_Modal' data-toggle='modal' type='button' onclick='remove("'+item.key+'")')
+                  i.mdi.mdi-trash-can-outline
+                button.btn.btn-success.btn-sm(data-target='#Update_Modal',data-toggle='modal',type='button',onclick='update('+JSON.stringify(item)+')',style="margin:10px") 
+                  i.mdi.mdi-square-edit-outline
+      tfoot
+          tr  
+            th(scope='col') #ID
+            th(scope='col') Name
+            th(scope='col') Address
+            th(scope='col') Email
+            th(scope='col') Phone
+            th Action
+    .modal.fade#Update_Modal(aria-hidden='true' aria-labelledby='exampleModalLabel' tabindex='-1')
+      .modal-dialog
+        .modal-content
+          .modal-header
+            h5.modal-title#exampleModalLabel Update item
+            button.close(data-dismiss='modal' type='button' aria-label='Close')
+              span(aria-hidden='true') ×
+          .modal-body
+            form(action='/updatesupplier' method="POST")
+              input#update_key(name="update_key" type="hidden")
+              .form-group
+                label Name
+                input.form-control#update_name(name='name' type='text')
+              .form-group
+                label Address
+                input.form-control#update_address(name='address' type='text')
+              .form-group
+                label Email
+                input.form-control#update_email(name='email' type='text')
+              .form-group
+                label Phone
+                input.form-control#update_phone(name='phone' type='text')
+              button.btn.btn-primary.right(type='submit') Submit
+    .modal.fade#Add_Modal(aria-hidden='true' aria-labelledby='exampleModalLabel' tabindex='-1')
+      .modal-dialog
+        .modal-content
+          .modal-header
+            h5.modal-title#exampleModalLabel Add Supplier
+            button.close(data-dismiss='modal' type='button' aria-label='Close')
+              span(aria-hidden='true') ×
+          .modal-body
+            form#add_form(action="/addsupplier" method="POST")
+              .form-group
+                label Name
+                input.form-control(name='name' type='text' required)
+              .form-group
+                label Address
+                input.form-control(name='address' type='text' required)
+              .form-group
+                label Email
+                input.form-control(name='email' type='text' required)
+              .form-group
+                label Phone
+                input.form-control(name='phone' type='text' required)
+              button.btn.btn-primary#add_submit.right(type='submit') Submit     
+    .modal.fade#Remove_Modal(aria-hidden='true' aria-labelledby='exampleModalLabel' tabindex='-1')
+      .modal-dialog
+        .modal-content
+          .modal-header
+            h5.modal-title#exampleModalLabel Are you sure?
+            button.close(data-dismiss='modal' type='button' aria-label='Close')
+              span(aria-hidden='true') ×
+          .modal-body
+            form(action='/removesupplier' method="POST")
+              input#remove_key(name='key' type="hidden")
+              button.btn.btn-primary.float-right(type='submit') Accept
+    script. 
+          function update(item){
+            document.getElementById("update_key").value=item.key
+            document.getElementById("update_name").value=item.name
+            document.getElementById("update_address").value=item.address
+            document.getElementById("update_email").value=item.email
+            document.getElementById("update_phone").value=item.phone
+            };
+          function remove(key){
+            document.getElementById("remove_key").value=key
+          }
+    script.
+          $(document).ready(function () {
+            $('#myUL tfoot th').each(function () {
+              var title = $(this).text();
+              $(this).html('<input class="form-control footer" type="text" placeholder="Search ' + title + '" />');
+            });
+            var table = $('#myUL').DataTable({
+              initComplete: function () {
+                // Apply the search
+                this.api().columns().every(function () {
+                  var that = this;
+                  $('input.footer', this.footer()).on('keyup change clear', function () {
+                    if (that.search() !== this.value) {
+                      that
+                        .search(this.value)
+                        .draw();
+                    }
+                  });
+                });
+              }
+            });
+          });
+

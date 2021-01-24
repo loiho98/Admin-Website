@@ -1,0 +1,89 @@
+extends layout
+block title
+  .btn-group.btn-breadcrumb
+    a.btn.btn-default(href='/preview')
+      i.mdi.mdi-home
+    a.btn.btn-default(href='/comments') Comment
+    a.btn.btn-default(href='#') Product #{key}
+block content
+    table.table#myUL.table-striped.table-responsive
+      thead.thead-dark
+        tr
+          th(scope='col') UID
+          th(scope='col') Rating
+          th(scope='col') Comment
+          th(scope='col') Reply
+          th(scope='col') Time
+          th(scope='col') Action
+      tbody
+          each item in comment
+            tr
+              td(style="white-space: nowrap;") #{item.uid?item.uid:""}
+              td #{item.rating}
+              td #{item.comment.content}
+              if (item.comment.reply)
+                td #{item.comment.reply}
+              else
+                td 
+              td #{item.comment.time}
+              td 
+                button.btn.btn-warning.btn-sm.ftr(data-target='#Reply_Modal',data-toggle='modal',type='button',onclick='reply('+JSON.stringify(item)+')')
+                  i.mdi.mdi-chat
+                if item.comment.show=="0"
+                  button.btn.btn-success.btn-sm(type='button',onclick='confirm('+JSON.stringify(item)+')')
+                    i.mdi.mdi-check
+    .modal.fade#Reply_Modal(aria-hidden='true' aria-labelledby='exampleModalLabel' tabindex='-1')
+      .modal-dialog
+        .modal-content
+          .modal-header
+            h5.modal-title#exampleModalLabel Reply
+            button.close(data-dismiss='modal' type='button' aria-label='Close')
+              span(aria-hidden='true') ×
+          .modal-body
+            form(action='/reply' method="POST")
+              input#reply_uid.form-control(name='reply_uid' type="hidden")
+              input#reply_pid.form-control(name='reply_pid' type="hidden")
+              .form-group
+                label Content
+                input.form-control(name='reply_content' type='text')
+              button.btn.btn-primary(type='submit') Submit
+          .modal-footer
+            button.btn.btn-secondary(data-dismiss='modal' type='button') Close
+    script.
+      var key=!{JSON.stringify(key)}
+      function reply(item){
+          document.getElementById("reply_uid").value=item.uid
+          document.getElementById("reply_pid").value=item.pid
+      }
+      function confirm(item){
+        firebase.database().ref('/review/'+key+"/"+item.uid+"/comment").update({
+          show:"1"
+        }).then(()=>{window.location.reload()})
+
+      }
+      
+    script.
+          $(document).ready(function () {
+            $('#myUL tfoot th').each(function () {
+              var title = $(this).text();
+              $(this).html('<input class="form-control footer" type="text" placeholder="Search ' + title + '" />');
+            });
+            var table = $('#myUL').DataTable({
+               "order": [[ 3, "asc" ]],
+              initComplete: function () {
+                // Apply the search
+                this.api().columns().every(function () {
+                  var that = this;
+                  $('input.footer', this.footer()).on('keyup change clear', function () {
+                    if (that.search() !== this.value) {
+                      that
+                        .search(this.value)
+                        .draw();
+                    }
+                  });
+                });
+              }
+            });
+          });
+
+

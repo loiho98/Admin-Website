@@ -1,0 +1,13 @@
+<tr>
+  <td>
+      <input
+        type="checkbox"
+        value="'+item.name+'"
+        id="variant_'+item.name+'"
+        checked
+      />
+      <label>'+item.name+'</label>
+  </td>
+  <td class="col">SKU: '+(item.sku?item.sku:"_")+'</td>
+  <td class="col">Quantity: '+(item.quantity?item.quantity:"_")+'</td>
+</tr>

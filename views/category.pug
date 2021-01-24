@@ -1,0 +1,117 @@
+extends layout
+block title
+  .btn-group.btn-breadcrumb
+    a.btn.btn-default(href='/preview')
+      i.mdi.mdi-home
+    a.btn.btn-default(href='/category') Categories
+block rightbutton
+    button.btn.btn-outline-success.my-2.my-sm-0(data-target='#Add_Modal' data-toggle='modal' type='button') Add Category
+block content
+    table.table#myUL.table-striped.table-responsive
+      thead.thead-dark
+          tr  
+            th(scope='col') #
+            th(scope='col') Name
+            th(scope='col') Image
+            th(scope='col') Action
+      tbody
+        each item in category
+          tr
+              td(style="white-space: nowrap;").name #{item.key}
+              td.name #{item.name}
+              td
+                img(src=item.image, alt="", style="width:40px")
+              td
+                button.btn.btn-warning.btn-sm(data-target='#Remove_Modal' data-toggle='modal' type='button' onclick='remove("'+item.key+'")')
+                  i.mdi.mdi-trash-can-outline
+                button.btn.btn-success.btn-sm(data-target='#Update_Modal',data-toggle='modal',type='button',onclick='update('+JSON.stringify(item)+')',style="margin:10px") 
+                  i.mdi.mdi-square-edit-outline
+      tfoot
+        tr  
+            th Key
+            th Name
+            th Image
+            th Action
+    .modal.fade#Update_Modal(aria-hidden='true' aria-labelledby='exampleModalLabel' tabindex='-1')
+      .modal-dialog
+        .modal-content
+          .modal-header
+            h5.modal-title#exampleModalLabel Update item
+            button.close(data-dismiss='modal' type='button' aria-label='Close')
+              span(aria-hidden='true') ×
+          .modal-body
+            form(action='/updatecategory' method="POST")
+              input#update_key(name='update_key' type='hidden')
+              .form-group
+                label Name
+                input.form-control#update_name(name='update_name' type='text')
+              .form-group
+                label Image
+                input.form-control#update_image(name='update_image' type='text')
+              button.btn.btn-primary.right(type='submit') Submit
+    .modal.fade#Add_Modal(aria-hidden='true' aria-labelledby='exampleModalLabel' tabindex='-1')
+      .modal-dialog
+        .modal-content
+          .modal-header
+            h5.modal-title#exampleModalLabel Add Category
+            button.close(data-dismiss='modal' type='button' aria-label='Close')
+              span(aria-hidden='true') ×
+          .modal-body
+            form#add_form(action="/addcategory" method="POST")
+              .form-group
+                label Name
+                input.form-control#add_name(name='add_name' type='text' required)
+              .form-group
+                label Image
+                input.form-control(name='add_image' type='text' required)
+              p#add_error(style='color:red') 
+              button.btn.btn-primary#add_submit.right(type='submit') Submit     
+    .modal.fade#Remove_Modal(aria-hidden='true' aria-labelledby='exampleModalLabel' tabindex='-1')
+      .modal-dialog
+        .modal-content
+          .modal-header
+            h5.modal-title#exampleModalLabel Are you sure? 
+            button.close(data-dismiss='modal' type='button' aria-label='Close')
+              span(aria-hidden='true') ×
+          .modal-body
+            p Please check product data when delete category !
+          .modal-body
+            form(action='/removecategory' method="POST")
+              input#remove_key(name='remove_key' type="hidden")
+              button.btn.btn-primary.float-right(type='submit') Accept
+      script. 
+          function update(item){
+            document.getElementById("update_name").value=item.name
+            document.getElementById("update_key").value=item.key
+            document.getElementById("update_image").value=item.image
+            };
+          function remove(key){
+            document.getElementById("remove_key").value=key
+          }
+      script.
+          $(document).ready(function() {
+            // Setup - add a text input to each footer cell
+            $('#myUL tfoot th').each( function () {
+                var title = $(this).text();
+                $(this).html( '<input type="text" class="footer form-control" placeholder="Search '+title+'" />' );
+            } );
+        
+            // DataTable
+            var table = $('#myUL').DataTable({
+                initComplete: function () {
+                    // Apply the search
+                    this.api().columns().every( function () {
+                        var that = this;
+        
+                        $( 'input.footer', this.footer() ).on( 'keyup change clear', function () {
+                            if ( that.search() !== this.value ) {
+                                that
+                                    .search( this.value )
+                                    .draw();
+                            }
+                        } );
+                    } );
+                }
+            });
+            
+            } );

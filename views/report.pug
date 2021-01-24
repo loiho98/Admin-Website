@@ -1,0 +1,69 @@
+extends layout
+block title
+  .btn-group.btn-breadcrumb
+    a.btn.btn-default(href='/preview')
+      i.mdi.mdi-home
+    a.btn.btn-default(href='#') Report
+block content
+  .content
+    .invoice-wrapper.rounded.border.bg-white.py-5.px-3.px-md-4.px-lg-5
+      table.table
+        tr
+          td
+          td.w-50
+            .card.border-primary
+                .card-header.card-header-border-bottom.bg-primary.text-light
+                  h5 By Product
+                .card-body
+                  |Best-selling products over time statistic.
+                  form.right(action="/reportbyproduct" method="POST")
+                    input#start(type="hidden" name="start")
+                    input#end(type="hidden" name="end" )
+                    button.btn.btn-warning.btn-sm(type="submit")
+                      i.mdi.mdi-arrow-right.right View Report
+          td.w-50
+            .card.border-primary
+              .card-header.card-header-border-bottom.bg-primary.text-light
+                  h5 By Customer
+              .card-body
+                |Gross sales - by customer.
+                form.right(action="/reportbycustomer" method="POST")
+                  input#start1(type="hidden" name="start")
+                  input#end1(type="hidden" name="end")
+                  button.btn.btn-warning.btn-sm(type="submit")
+                    i.mdi.mdi-arrow-right.right View Report
+        tr
+          td
+          td.w-50
+            .card.border-primary
+              .card-header.card-header-border-bottom.bg-primary.text-light
+                  h5 By Supplier
+              .card-body
+                  |Which supplier are doing business effectively over time.
+                  form.right(action="/reportbysupplier" method="POST")
+                    input#start2(type="hidden" name="start")
+                    input#end2(type="hidden" name="end")
+                    button.btn.btn-warning.btn-sm(type="submit")
+                      i.mdi.mdi-arrow-right.right View Report
+          td.w-50
+            .card.border-primary
+              .card-header.card-header-border-bottom.bg-primary.text-light
+                  h5 By Category
+              .card-body
+                  |Help you to detail statistics of each category over time.
+                  form.right(action="/reportbycategory" method="POST")
+                    input#start3(type="hidden" name="start")
+                    input#end3(type="hidden" name="end")
+                    button.btn.btn-warning.btn-sm(type="submit")
+                      i.mdi.mdi-arrow-right.right View Report
+  script.
+    $(document).ready(function(){
+      $("#start").val(moment().startOf('month').format("MM/DD/YYYY"))
+      $("#end").val(moment().format("MM/DD/YYYY"))
+      $("#start1").val(moment().startOf('month').format("MM/DD/YYYY"))
+      $("#end1").val(moment().format("MM/DD/YYYY"))
+      $("#start2").val(moment().startOf('month').format("MM/DD/YYYY"))
+      $("#end2").val(moment().format("MM/DD/YYYY"))
+       $("#start3").val(moment().startOf('month').format("MM/DD/YYYY"))
+      $("#end3").val(moment().format("MM/DD/YYYY"))
+    })

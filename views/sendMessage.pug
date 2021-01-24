@@ -1,0 +1,53 @@
+extends layout
+block title
+  .btn-group.btn-breadcrumb
+    a.btn.btn-default(href='/preview')
+      i.mdi.mdi-home
+    a.btn.btn-default(href='#') Send Message
+block rightbutton
+    button.btn.btn-outline-success.my-2.my-sm-0(data-target='#Add_Modal' data-toggle='modal' type='button') Add User
+block content
+  table.table#myUL.table-striped.table-responsive.display
+    thead.thead-dark
+      tr
+        th(scope='col') UID
+        th(scope='col') Email
+        th(scope='col') Name
+        th(scope='col') 
+    tbody
+      each item in user
+        tr
+          td #{item.uid}
+          td #{item.email}
+          td #{item.displayName}
+          td
+            a.btn.btn-success.btn-sm(href="/enterchatroom?key="+item.uid) Send
+    tfoot
+      tr
+        th #UID
+        th Email
+        th Name
+        th Action
+  script.
+     $(document).ready(function () {
+            $('#myUL tfoot th').each(function () {
+              var title = $(this).text();
+              $(this).html('<input class="form-control footer" type="text" placeholder="Search ' + title + '" />');
+            });
+            var table = $('#myUL').DataTable({
+              initComplete: function () {
+                // Apply the search
+                this.api().columns().every(function () {
+                  var that = this;
+                  $('input.footer', this.footer()).on('keyup change clear', function () {
+                    if (that.search() !== this.value) {
+                      that
+                        .search(this.value)
+                        .draw();
+                    }
+                  });
+                });
+              }
+            });
+          });     
+

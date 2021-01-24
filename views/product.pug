@@ -1,0 +1,367 @@
+extends layout
+block title
+  //- i.mdi.mdi-arrow-right-drop-circle Products
+  .btn-group.btn-breadcrumb
+    a.btn.btn-default(href='/preview')
+      i.mdi.mdi-home
+    a.btn.btn-default(href='/product') Product
+block rightbutton
+  a.btn.btn-outline-success(href="/addproductpage") Add Product
+  //- a.btn.btn-outline-success.my-2.my-sm-0(data-target='#Add_Modal' data-toggle='modal' type='button' onclick="add()") Add Product
+block content
+  .center
+    button.btn(style="font-weight:bold") Display:
+    button.btn.btn-sm.toggle-vis(data-column='0') Key
+    button.btn.btn-sm.btn-warning.toggle-vis(data-column='1') Name
+    button.btn.btn-sm.btn-warning.toggle-vis(data-column='2') Category
+    button.btn.btn-sm.btn-warning.toggle-vis(data-column='3') Image
+    button.btn.btn-sm.toggle-vis(data-column='4') Color
+    button.btn.btn-sm.toggle-vis(data-column='5') Size
+    button.btn.btn-sm.toggle-vis(data-column='6') Material
+    button.btn.btn-sm.btn-warning.toggle-vis(data-column='7') Price
+    button.btn.btn-sm.toggle-vis(data-column='8') Supplier
+    button.btn.btn-sm.toggle-vis(data-column='9') Variant
+    button.btn.btn-sm.toggle-vis(data-column='10') Info
+    button.btn.btn-sm.toggle-vis(data-column='11') Date
+    button.btn.btn-sm.toggle-vis(data-column='12') Rating
+    button.btn.btn-sm.toggle-vis(data-column='13') Comment
+    button.btn.btn-sm.toggle-vis(data-column='14') View
+    button.btn.btn-sm.toggle-vis(data-column='15') Discount
+    button.btn.btn-warning.btn-sm.toggle-vis(data-column='16') Action
+
+  table.table#myUL.table-striped.table-responsive.display.w-100
+    thead.thead-dark
+      tr
+        th(scope='col') #
+        th(scope='col') Name
+        th(scope='col') Category
+        th(scope='col') Image
+        th(scope='col') Color
+        th(scope='col') Size
+        th(scope='col') Material
+        th(scope='col') Price
+        th(scope='col') Supplier
+        th(scope='col') Variant
+        th(scope='col') Description
+        th(scope='col') Date
+        th(scope='col') Rating
+        th(scope='col') Comment
+        th(scope='col') View
+        th(scope='col') Discount
+        th Action
+    tbody
+      each item in product
+        tr
+          td #{item.key}
+          td #{item.name}
+          td #{item.category}
+          td
+            each i in item.image
+              img(src=i, alt="", style="height:3.75rem;margin:10px" )
+          td  
+            each i in item.color
+              p #{i.name}
+          td
+            each i in item.size
+              button.btn-sm(style="margin:1px") #{i.name} 
+          td #{item.material}
+          td #{Number(item.price).toLocaleString('en-US', {style: 'currency', currency: 'USD'} )}
+          td 
+            a(href="/supplier?key="+item.supplier) #{item.supplier}
+          td
+            table.table.w-100
+              thead
+                  tr
+                    td SKU
+                    td Name
+                    td Quantity
+              tbody
+                each i in item.variant
+                  tr
+                    td #{i.sku}
+                    td #{i.name}
+                    td #{i.quantity} 
+          td #{item.description}
+          td #{item.add}
+          td #{Math.round(item.rating.value)} stars#{'\n'}(#{item.rating.count})
+          td
+            a(href='/comments?key='+item.key) #{item.comment}
+          td #{item.view}
+          td #{item.discount}%
+          td
+            button.btn.btn-warning.btn-sm(data-target='#Remove_Modal' data-toggle='modal' type='button' onclick='remove("'+item.key+'")')
+              i.mdi.mdi-trash-can-outline
+            a.btn.btn-success.btn-sm(href="/updateproductpage?key="+item.key,style="margin:10px") 
+              i.mdi.mdi-square-edit-outline
+    tfoot
+      tr
+        th(scope='col') #Key
+        th(scope='col') Name
+        th(scope='col') Category
+        th(scope='col') Image
+        th(scope='col') Color
+        th(scope='col') Size
+        th(scope='col') Material
+        th(scope='col') Price
+        th(scope='col') Supplier
+        th(scope='col') Variant
+        th(scope='col') Description
+        th(scope='col') Date
+        th(scope='col') Rating
+        th(scope='col') Comment
+        th(scope='col') View
+        th(scope='col') Discount
+        th 
+  .modal.fade#Update_Modal(aria-hidden='true' aria-spanledby='exampleModalspan' tabindex='-1')
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h5.modal-title#modal_name
+          button.close(data-dismiss='modal' type='button' aria-span='Close')
+            span(aria-hidden='true') ×
+        .modal-body
+          form(action='/updateproduct' method="POST")
+            .form-group
+                label Name
+                input.form-control#add_name(name='add_name' type='text' required)  
+            .form-group.row
+              .col
+                label(for="") Supplier
+                select.form-control
+                  each item in supplier
+                    option(value=item) #{item}
+              .col
+                label(for="") Category
+                select.form-control
+                  each item in category
+                    option(value=item) #{item}
+            .form-group
+              label(for="") Description
+              textarea.form-control(name='Text1' cols='50')
+            .form-group.row
+              .col  
+                label Price
+                input.form-control( type='number' required)  
+              .col
+                label Discount(%)
+                input.form-control( type='number' required)
+            .form-group.row
+              .col  
+                label Image 1
+                input.form-control( type='text' required)  
+              .col
+                img#update_link1(src="", alt="", style="width:50;height:62.5")
+            .form-group.row
+              .col  
+                label Image 2
+                input.form-control( type='text' required)  
+              .col
+                img(src="", alt="",style="width:50;height:62.5")
+            .form-group
+              label Color
+              input#update_color.form-control(name='tags' value='')
+            .form-group
+              label Size
+              input#update_size.form-control(name='tags' value='')
+              p(style="font-size:12px;font-weight:bold") Available Size:
+              each item in size 
+                button.btn.btn-sm.btn-outline-primary(onclick='addSize("'+item.name+'")' type="button") #{item.name}
+            button.btn.btn-primary(type='submit') Submit
+        .modal-footer
+          button.btn.btn-secondary(data-dismiss='modal' type='button') Close
+  .modal.fade#Add_Modal(aria-hidden='true' aria-spanledby='exampleModalspan' tabindex='-1')
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h5.modal-title ADD NEW PRODUCT
+          button.close(data-dismiss='modal' type='button' aria-span='Close')
+            span(aria-hidden='true') ×
+        .modal-body
+          form#add_form(action='/test' method="POST")
+            .form-group
+                label Name
+                input.form-control#name(name='name' type='text' required)  
+            .form-group.row
+              .col
+                label(for="") Supplier
+                select(name="supplier").form-control
+                  each item in supplier
+                    option(value=item) #{item}
+              .col
+                label(for="") Category
+                select(name="category").form-control
+                  each item in category
+                    option(value=item) #{item}
+            .form-group
+              label(for="") Description
+              textarea.form-control(name='description' cols='50')
+            .form-group.row
+              .col  
+                label Price
+                input.form-control(name="price" type='number' required)  
+              .col
+                label Discount(%)
+                input.form-control(name="discount" type='number' required)
+            .form-group.row
+              .col  
+                label Image 1
+                input.form-control(name="link1" type='text' required)  
+              .col
+                label Image 2
+                input.form-control(name="link2" type='text' required)  
+            p.text-warning(style="font-size:14px;font-weight:bold;margin:auto") Select color and size, then generate variants.
+            .form-group
+              label Color
+              input#add_color.form-control(name='color' value='')
+            .form-group
+              label Size
+              input#add_size.form-control(name='size' value='')
+              p(style="font-size:12px;font-weight:bold") Available Size:
+              each item in size 
+                button.btn.btn-sm.btn-outline-primary(onclick='addSize("'+item.name+'")' type="button") #{item.name}
+            .form-group
+              button#generate(type="button").btn.btn-success.btn-sm Generate Variants
+            #div
+            input#add_product(type="hidden" name="add_product")
+            button.btn.btn-primary(type='submit') Submit
+        .modal-footer
+          button.btn.btn-secondary(data-dismiss='modal' type='button') Close
+  .modal.fade#Remove_Modal(aria-hidden='true' aria-spanledby='exampleModalspan' tabindex='-1')
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h5.modal-title#exampleModalspan Are you sure?
+          button.close(data-dismiss='modal' type='button' aria-span='Close')
+            span(aria-hidden='true') ×
+        .modal-body
+          form(action='/removeproduct' method="POST")
+            input#remove_id(name='remove_id' type="hidden")
+            button.btn.btn-primary.float-right(type='submit') Accept
+  script.
+    function update(item){
+      $("#modal_name").html(item.name.toUpperCase());
+      };
+    function remove(id){
+      document.getElementById("remove_id").value=id
+    }
+    //-  function add(){
+    //-   document.getElementById("add_date").value=moment().format('llll').toString()
+    //- }
+    function addSize(name){
+      if (!$('#add_size').tagExist(name)) { $('#add_size').addTag(name);}
+      else{
+        $('#add_size').removeTag(name)
+      }
+    }
+    $("#add_form").submit(function() {
+     alert($("#add_color").val())
+     return false
+    });
+    $(document).ready(function() {
+           var color=[],size=[]
+           $('#add_color').tagsInput({'onAddTag':(e)=>{
+              color.push(e)
+           },
+           'onRemoveTag':(x)=>{
+             color=color.filter(c=>c!=x)
+           }
+           });
+           $('#add_size').tagsInput({'onAddTag':(e)=>{
+              size.push(e)
+           },
+           'onRemoveTag':(x)=>{
+             size=size.filter(s=>s!=x)
+           }
+           });
+           $("#generate").click(function(){
+             $("#div").html(null)
+             for(i in color){
+               for(j in size){
+                 var e="Color "+color[i]+"/"+"Size "+size[j]
+                 $("#div").append('<div class="card" style="padding: 10px;"> <div class="card-header">'+e.toUpperCase()+'</div> <div class="card-body"> <div class="form-group row"> <div class="col"> <label>SKU</label><input class="form-control" type="text" /> </div> <div class="col"> <label>Quantity</label><input class="form-control" type="text" /> </div> </div> </div> </div>')
+               }
+             }
+            });
+          
+             $('#myUL tfoot th').each( function () {
+                  var title = $(this).text();
+                 $(this).html('<input class="footer" type="text"/>');
+              } );
+          var table = $('#myUL').DataTable( {
+            "order": [[ 0, "desc" ]],
+            "scrollX": true,
+              "columnDefs": [
+            {
+                "targets": [ 0 ],
+                "visible": false,
+            },
+            {
+                "targets": [ 4],
+                "visible": false,
+            },
+              {
+                "targets": [ 5 ],
+                "visible": false
+            },
+              {
+                "targets": [ 6 ],
+                "visible": false
+            },
+              {
+                "targets": [ 8 ],
+                "visible": false
+            },
+              {
+                "targets": [ 9 ],
+                "visible": false
+            },
+                {
+                "targets": [ 10 ],
+                "visible": false
+            },
+                {
+                "targets": [11 ],
+                "visible": false
+            },
+                {
+                "targets": [ 12 ],
+                "visible": false
+            },
+             {
+                "targets": [ 13 ],
+                "visible": false
+            },
+             {
+                "targets": [ 14 ],
+                "visible": false
+            },
+             {
+                "targets": [ 15 ],
+                "visible": false
+            },
+            
+        ],
+         initComplete: function () {
+            // Apply the search
+            this.api().columns().every( function () {
+                var that = this;
+                $( 'input.footer', this.footer() ).on( 'keyup change clear', function () {
+                    if ( that.search() !== this.value ) {
+                        that
+                            .search( this.value )
+                            .draw();
+                    }
+                } );
+            } );
+        }
+          } );
+      
+          $('button.toggle-vis').on( 'click', function (e) {
+              e.preventDefault();
+              // Get the column API object
+              var column = table.column( $(this).attr('data-column') );
+              // Toggle the visibility
+              column.visible( ! column.visible() );
+                $(this).toggleClass('btn-warning');
+          } );
+      } );
